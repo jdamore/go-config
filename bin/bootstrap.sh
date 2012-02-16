@@ -7,7 +7,7 @@ echo "Will execute user-data"
 # Update/Install packages
 aptitude -y update 
 aptitude -y safe-upgrade 
-aptitude -y install sun-java6-jre
+aptitude -y install openjdk-6-jre-headless
 aptitude -y install unzip
 aptitude -y install git
 
