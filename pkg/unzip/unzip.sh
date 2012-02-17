@@ -7,7 +7,7 @@ function unzip_init() {
 }
 
 function unzip_create() {
-	sudo aptitude -y install $UNZIP_IN_APT_PACKAGE
+	sudo $UNZIP_IN_PKG_MGR install -y $UNZIP_IN_PACKAGE
 	which unzip > $CURR_DIR/unzip.out
 	UNZIP_OUT=`cat $CURR_DIR/unzip.out`
 }

@@ -7,7 +7,7 @@ function git_init() {
 }
 
 function git_create() {
-	sudo aptitude -y install $GIT_IN_APT_PACKAGE
+	sudo $GIT_IN_PKG_MGR install -y $GIT_IN_PACKAGE
 	which git > $CURR_DIR/git.out
 	GIT_OUT=`cat $CURR_DIR/git.out`
 }

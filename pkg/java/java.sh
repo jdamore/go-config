@@ -7,7 +7,7 @@ function java_init() {
 }
 
 function java_create() {
-	sudo aptitude -y install $JAVA_IN_APT_PACKAGE
+	sudo $JAVA_IN_PKG_MGR install -y $JAVA_IN_PACKAGE
 	which java > $CURR_DIR/java.out
 	JAVA_OUT=`cat $CURR_DIR/java.out`
 }
