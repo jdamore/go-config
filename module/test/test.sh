@@ -7,20 +7,23 @@ function test_init() {
 }
 
 function test_create() {
-	echo "This is a Test" > $CURR_DIR/$TEST_OUT
+	echo "This is a Test" > $CURR_DIR/test.out
+	TEST_OUT=`cat $CURR_DIR/test.out`
 }
 
 function test_check() {
-	local test_out=`cat $CURR_DIR/$TEST_OUT`
-	if [ "$test_out" = "This is a Test" ]; then
-		echo "test_check: SUCCESS"
+	if [ "$TEST_OUT" = "This is a Test" ]; then
+		echo "test: Installation Complete ($TEST_OUT)"
 	else
-		echo "test_check: FAILED ($test_out)"
+		echo "test: Failed!"
+		echo $TEST_OUT
 	fi
 }
 
 function test_clean() {
-	rm $CURR_DIR/$TEST_OUT
+	if [ -e $CURR_DIR/test.out ];then 
+		rm $CURR_DIR/test.out
+	fi
 }
 
 test_init

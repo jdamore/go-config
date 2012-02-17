@@ -7,13 +7,27 @@ function git_init() {
 }
 
 function git_create() {
-	sudo aptitude -y install $GIT_APT_PACKAGE
+	sudo aptitude -y install $GIT_IN_APT_PACKAGE
+	which git > $CURR_DIR/git.out
+	GIT_OUT=`cat $CURR_DIR/git.out`
 }
 
 function git_check() {
-	git -h
+	if [ "$GIT_OUT" = "/usr/bin/git" ]; then
+		echo "git: Installation Complete ($GIT_OUT)"
+	else
+		echo "git: Failed!"
+		echo $GIT_OUT
+	fi
+}
+
+function git_clean() {
+	if [ -e $CURR_DIR/git.out ];then 
+		rm $CURR_DIR/git.out
+	fi
 }
 
 git_init
 git_create
 git_check
+git_clean
