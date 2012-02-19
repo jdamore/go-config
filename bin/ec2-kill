@@ -1,0 +1,11 @@
+#!/bin/bash
+
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $curr_dir/ec2.config
+
+if [ $# -lt 1 ]; then
+	echo "Usage ec2-kill <instance_id>"
+else	
+	EC2_ID=$1
+	ec2-terminate-instances $EC2_ID	
+fi

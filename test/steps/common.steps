@@ -1,0 +1,6 @@
+#!/bin/bash
+
+function i_wait() {
+	seconds=$1
+	sleep $seconds
+}

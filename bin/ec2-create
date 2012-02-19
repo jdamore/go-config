@@ -1,0 +1,21 @@
+#!/bin/bash
+
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $curr_dir/ec2.config
+
+AMI=ami-06ad526f
+KEYPAIR=jrbigmac
+EC2_SIZE=t1.micro
+SEC_GROUP=default
+
+while getopts :a:k:s:g opt; do
+	case $opt in
+		a) AMI=$OPTARG; echo $AMI;;
+		k) KEYPAIR=$OPTARG; echo $KEYPAIR;;
+		s) SIZE=$OPTARG; echo $SIZE;;
+		g) SEC_GROUP=$OPTARG; echo $SEC_GROUP;;
+		\?) echo "Invalid option: -$opt"; echo "Usage create-ec2 [-aksg]";;
+	esac
+done
+
+ec2-run-instances $AMI -k $KEYPAIR -t $EC2_SIZE -g $SEC_GROUP | grep INSTANCE | awk '{ split( $0, a, " "); print a[2] }'

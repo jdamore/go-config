@@ -1,0 +1,30 @@
+#!/bin/bash
+
+function execute_feature() {
+	feature=$1
+	echo "----------------------------------------------------"
+	echo "Running $feature"
+	echo "----------------------------------------------------"
+	cat $feature | while read line; do
+		echo $line
+		keyword=`echo $line | awk '{ split( $0, a, " "); print a[1] }'`
+		if [ "$keyword" = "Given" -o "$keyword" = "When" -o "$keyword" = "Then" -o "$keyword" = "Finally" -o "$keyword" = "And" ]; then
+			eval `echo $line | awk '{ split( $0, a, " "); print a[2], a[3] }'`
+		fi
+	done
+}
+
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $curr_dir/../bin/ec2.config
+
+for steps in $curr_dir/steps/*.steps; do
+	source $steps
+done
+
+if [ $# -eq 1 ]; then
+	execute_feature $curr_dir/features/$1.feature
+else	
+	for feature in $curr_dir/features/*.feature; do
+		execute_feature $feature
+	done
+fi

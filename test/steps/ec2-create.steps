@@ -1,0 +1,22 @@
+#!/bin/bash
+
+function i_have_an_aws_account() {	
+	export EC2_PRIVATE_KEY=/Users/jdamore/.ec2/pk-MJ2YK44AV2SYHYAT3RCUZKFXZ3QEDX2O.pem
+	export EC2_CERT=/Users/jdamore/.ec2/cert-MJ2YK44AV2SYHYAT3RCUZKFXZ3QEDX2O.pem	
+}
+
+ec2_id=''
+function i_create_an_ec2() {	
+	curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+	ec2_id=`$curr_dir/../../bin/ec2-create`
+}
+
+function i_should_have_and_ec2_vm_on_aws {	
+	if [ "$ec2_id" = "" ]; then
+		echo "Assert failed, ec2_id is empty"
+	fi	
+}
+
+function i_delete_the_ec2 {
+	$curr_dir/../../bin/ec2-kill $ec2_id
+}

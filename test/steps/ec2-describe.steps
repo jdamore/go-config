@@ -1,0 +1,16 @@
+#!/bin/bash
+
+ec2_desc=''
+function i_describe_the_ec2_instance() {
+	curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+	ec2_desc=`$curr_dir/../../bin/ec2-describe $ec2_id`
+}
+
+ec2_dns=''
+function i_should_see_its_dns_name() {
+	ec2_dns=`echo $ec2_desc | awk '{ split( $0, a, " "); print a[4] }'`
+	ec2_dns_found=`echo $ec2_dns | grep "compute-1.amazonaws.com"`
+	if [ "$ec2_dns_found" = "" ]; then
+		echo "Assert failed, ec2_dns is empty ($ec2_dns)"
+	fi
+}

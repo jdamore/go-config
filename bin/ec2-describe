@@ -1,0 +1,9 @@
+#!/bin/bash
+
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $curr_dir/ec2.config
+
+if [ $# -eq 1 ]; then
+	EC2_ID=$1
+fi	
+ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split( $0, a, " "); print a[0], a[1], a[2], a[3], a[4], a[6], a[9], a[11] }'
