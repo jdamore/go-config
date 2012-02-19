@@ -1,8 +1,0 @@
-GO_SERVER=ec2-50-16-108-54.compute-1.amazonaws.com
-export GO_SERVER
-GO_SERVER_PORT=8080
-export GO_SERVER_PORT
-AGENT_WORK_DIR=/var/lib/go-agent
-export AGENT_WORK_DIR
-DAEMON=Y
-VNC=N
