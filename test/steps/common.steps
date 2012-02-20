@@ -1,6 +1,9 @@
 #!/bin/bash
 
+error=''
+
 function i_wait() {
 	seconds=$1
 	sleep $seconds
+	return 0
 }

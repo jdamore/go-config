@@ -1,13 +1,7 @@
 #!/bin/bash
 
-curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. $curr_dir/../bin/ec2.config
-
-set -e
-
 function is_comment() {
-	local line=$1
-	[[ $line == \#* ]] && return 0 || return 1
+	[[ $1 == \#* ]] && return 0 || return 1
 }
 
 function trim() {
@@ -20,32 +14,32 @@ function is_empty() {
 }
 
 function is_new_scenario() {
-	local line=$1
-	local keyword=`echo $line | awk '{ split($0, a, " "); print a[1] }'`
+	local keyword=`echo $1 | awk '{ split($0, a, " "); print a[1] }'`
 	[ "$keyword" = "Scenario:" ] && return 0 || return 1
 }
 
+function run_step() {
+	local step=`echo $1 | awk '{ split($0, a, " "); print a[2], a[3], a[4], a[5], a[6] }'`
+	$step
+}
+
 function run_scenario() {
-	local scenario_failed=no
+	local scenario_failed=0
 	local scenario_file=$1
 	local scenario_name$2
 	cat $scenario_file | while read line; do		
-		if [ "$scenario_failed" = "yes" ]; then
+		if [ $scenario_failed -eq 1 ]; then
 			echo "$line (SKIPPED)"
 		else
 			echo $line
 			local keyword=`echo $line | awk '{ split($0, a, " "); print a[1] }'`
 			if [ "$keyword" = "Given" -o "$keyword" = "When" -o "$keyword" = "Then" -o "$keyword" = "Finally" -o "$keyword" = "And" ]; then
-				eval "`echo $line | awk '{ split($0, a, " "); print a[2], a[3], a[4], a[5], a[6] }'`" > $curr_dir/run.out
-				local step_failed=`cat $curr_dir/run.out | grep FAILED`
-				if [ ! "$step_failed" = "" ];then
-					cat $curr_dir/run.out
-					scenario_failed=yes
+				run_step "$line"
+				if [ $? -ne 0 ]; then
+					scenario_failed=1
+					echo "$error"
 				fi
 			fi
-		fi
-		if [ -e $curr_dir/run.out ];then
-			rm $curr_dir/run.out
 		fi		
 	done
 }
@@ -78,6 +72,10 @@ function run_feature() {
 	run_scenario $curr_dir/scenario.out $scenario_name
 	rm $curr_dir/scenario.out
 }
+
+
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $curr_dir/../bin/ec2.config
 
 for steps in $curr_dir/steps/*.steps; do
 	source $steps

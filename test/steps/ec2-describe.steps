@@ -1,9 +1,12 @@
 #!/bin/bash
 
+error=''
+
 ec2_desc=''
 function i_describe_the_ec2_instance() {
 	local curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	ec2_desc=`ec2-describe $ec2_id`
+	return 0
 }
 
 ec2_dns=''
@@ -14,45 +17,56 @@ function i_describe_the_ec2_instance_dns_name() {
 		sleep 1
 		ec2_dns=`ec2-describe -d $ec2_id`
 	done	
+	return 0
 }
 
 ec2_ami=''
 function i_describe_the_ec2_instance_ami() {
 	local curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	ec2_ami=`ec2-describe -a $ec2_id`
+	return 0
 }
 
 ec2_size=''
 function i_describe_the_ec2_instance_size() {
 	local curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	ec2_size=`ec2-describe -s $ec2_id`
+	return 0
 }
 
 ec2_dns=''
 function i_should_see_its_details() {
 	ec2_instance=`echo $ec2_desc | awk '{ split( $0, a, " "); print a[1] }'`
 	if [ ! "$ec2_instance" = "INSTANCE" ]; then
-		echo "FAILED: can't see the EC2 details ($ec2_desc)"
+		error="FAILED: can't see the EC2 details ($ec2_desc)"
+		return 1
 	fi
+	return 0
 }
 
 function i_should_see_its_dns_name() {
 	local ec2_dns_found=`echo $ec2_dns | grep "compute-1.amazonaws.com"`
 	if [ "$ec2_dns_found" = "" ]; then
-		echo "FAILED: can't see the EC2 DNS name ($ec2_dns)"	
+		error="FAILED: can't see the EC2 DNS name ($ec2_dns)"
+		return 1	
 	fi
+	return 0
 }
 
 function i_should_see_its_ami_id() {
 	local ec2_ami_found=`echo $ec2_ami | grep "ami-"`
 	if [ "$ec2_ami_found" = "" ]; then
-		echo "FAILED: can't see the EC2 ami ($ec2_ami)"	
+		error="FAILED: can't see the EC2 ami ($ec2_ami)"	
+		return 1
 	fi
+	return 0
 }
 
 function i_should_see_its_size() {
 	local ec2_size_desc=`echo $ec2_size | awk '{ split($0, a, "."); print a[2] }'`
 	if [ ! "$ec2_size_desc" = "micro" -a ! "$ec2_size_desc" = "small" -a ! "$ec2_size_desc" = "medium" -a ! "$ec2_size_desc" = "large" -a ! "$ec2_size_desc" = "xlarge" ]; then
-		echo "FAILED: can't see the EC2 size ($ec2_size)"
+		error="FAILED: can't see the EC2 size ($ec2_size)"
+		return 1
 	fi
+	return 0
 }

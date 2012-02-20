@@ -1,43 +1,52 @@
 #!/bin/bash
 
+error=''
+
 function i_have_an_aws_account() {	
 	export EC2_PRIVATE_KEY=/Users/jdamore/.ec2/pk-MJ2YK44AV2SYHYAT3RCUZKFXZ3QEDX2O.pem
 	export EC2_CERT=/Users/jdamore/.ec2/cert-MJ2YK44AV2SYHYAT3RCUZKFXZ3QEDX2O.pem
 }
 
 ec2_id=''
-function i_create_an_ec2() {	
+function i_create_an_ec2() {
 	local curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	ec2_id=`ec2-create`
+	return 0
 }
 
 function i_create_an_ec2_with_ami() {
 	local ami_id=$1
 	ec2_id=`ec2-create -a $ami_id`
+	return 0
 }
 
 function i_create_an_ec2_with_size() {
 	local size=$1
 	ec2_id=`ec2-create -s $size`
+	return 0
 }
 
 function i_create_an_ec2_with_ami_and_size() {
 	local ami_id=$1
 	local size=$2
 	ec2_id=`ec2-create -a $ami_id -s $size`
+	return 0
 }
 
-function i_should_have_and_ec2_vm_on_aws() {	
+function i_should_have_and_ec2_vm_on_aws() {
 	if [ "$ec2_id" = "" ]; then
-		echo "FAILED: ec2_id is empty"
+		error="FAILED: ec2_id is empty"
+		return 1
 	fi
+	return 0
 }
 
 function the_ec2_ami_should_be() {
 	local expected_ami_id=$1
 	ec2_ami_id=`ec2-describe -a $ec2_id`
 	if [ ! "$expected_ami_id" = "$ec2_ami_id" ]; then
-		echo "FAILED: the EC2 AMI ID is $ec2_ami_id while was expecting $expected_ami_id"
+		error="FAILED: the EC2 AMI ID is $ec2_ami_id while was expecting $expected_ami_id"
+		return 1
 	fi
 }
 
@@ -45,10 +54,12 @@ function the_ec2_size_should_be() {
 	local expected_size=$1
 	ec2_size=`ec2-describe -s $ec2_id`
 	if [ ! "$expected_size" = "$ec2_size" ]; then
-		echo "FAILED: the EC2 size is $ec2_size while was expecting $expected_size"
+		error="FAILED: the EC2 size is $ec2_size while was expecting $expected_size"
+		return 1
 	fi
 }
 
 function i_delete_the_ec2 {
 	ec2-kill $ec2_id
+	return 0
 }
