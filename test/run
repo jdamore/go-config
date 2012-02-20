@@ -23,29 +23,45 @@ function run_step() {
 	$step
 }
 
-function run_scenario() {
-	local scenario_failed=0
+function run_scenario_steps() {
+	local rcode=0
 	local scenario_file=$1
-	local scenario_name$2
 	cat $scenario_file | while read line; do		
-		if [ $scenario_failed -eq 1 ]; then
-			echo "$line (SKIPPED)"
+		if [ $rcode -ne 0 ]; then echo "$line (SKIPPED)"
 		else
 			echo $line
 			local keyword=`echo $line | awk '{ split($0, a, " "); print a[1] }'`
 			if [ "$keyword" = "Given" -o "$keyword" = "When" -o "$keyword" = "Then" -o "$keyword" = "Finally" -o "$keyword" = "And" ]; then
 				run_step "$line"
-				if [ $? -ne 0 ]; then
-					scenario_failed=1
+				local step_rcode=$?
+				# echo "step_rcode=$step_rcode"
+				# echo "rcode_before=$rcode"
+				rcode=$step_rcode||$rcode
+				# echo "rcode_after=$rcode"
+				if [ $step_rcode -ne 0 ]; then
 					echo "$error"
 				fi
 			fi
 		fi		
 	done
+	return $rcode
+}
+
+function run_scenario() {
+	local scenario_file=$1
+	local scenario_name=$2
+	local rcode=0
+	if [ -e $scenario_file ]; then
+		run_scenario_steps $scenario_file
+		rcode=$?
+		rm $scenario_file
+	fi
+	return $rcode
 }
 
 function run_feature() {
-	feature=$1
+	local rcode=0
+	local feature=$1
 	echo ""
 	echo "****************************************************"
 	echo "Running $feature"
@@ -53,10 +69,8 @@ function run_feature() {
 	local scenario_name=''
 	cat $feature | while read line; do	
 		if ( is_new_scenario $line ); then
-			if [ -e $curr_dir/scenario.out ]; then
-				run_scenario $curr_dir/scenario.out $scenario_name
-				rm $curr_dir/scenario.out
-			fi
+			run_scenario "$curr_dir/scenario.out" "$scenario_name"
+			rcode=$?||$rcode
 			scenario_name=`echo $line | awk '{ split( $0, a, ":"); print a[2] }'`
 			echo ""
 			echo "---------"
@@ -69,10 +83,11 @@ function run_feature() {
 			echo $line >> $curr_dir/scenario.out
 		fi
 	done
-	run_scenario $curr_dir/scenario.out $scenario_name
-	rm $curr_dir/scenario.out
+	run_scenario "$curr_dir/scenario.out" "$scenario_name"
+	return $?||$rcode
 }
 
+rcode=0
 
 curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $curr_dir/../bin/ec2.config
@@ -83,8 +98,15 @@ done
 
 if [ $# -eq 1 ]; then
 	run_feature $curr_dir/features/$1.feature
+	rcode=$?
 else	
 	for feature in $curr_dir/features/*.feature; do
 		run_feature $feature
+		rcode=$?||$rcode
 	done
 fi
+
+if [ $rcode -ne 0 ]; then
+	echo "RUN FAILED"
+fi
+exit $rcode

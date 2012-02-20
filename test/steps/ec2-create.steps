@@ -48,6 +48,7 @@ function the_ec2_ami_should_be() {
 		error="FAILED: the EC2 AMI ID is $ec2_ami_id while was expecting $expected_ami_id"
 		return 1
 	fi
+	return 0
 }
 
 function the_ec2_size_should_be() {
@@ -57,9 +58,12 @@ function the_ec2_size_should_be() {
 		error="FAILED: the EC2 size is $ec2_size while was expecting $expected_size"
 		return 1
 	fi
+	return 0
 }
 
 function i_delete_the_ec2 {
-	ec2-kill $ec2_id
+	local curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+	ec2-kill $ec2_id > $curr_dir/kill.out
+	rm $curr_dir/kill.out
 	return 0
 }
