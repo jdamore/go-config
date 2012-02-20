@@ -3,7 +3,26 @@
 curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $curr_dir/ec2.config
 
-if [ $# -eq 1 ]; then
-	EC2_ID=$1
-fi	
-ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split( $0, a, " "); print a[0], a[1], a[2], a[3], a[4], a[6], a[9], a[11] }'
+DNS_NAME=no
+AMI=no
+SIZE=no
+while getopts :d:a:s opt; do
+	case $opt in
+		d) DNS_NAME=yes;;
+		a) AMI=yes;;
+		s) SIZE=yes;;
+		\?) echo "Invalid option: -$opt"; echo "Usage ec2-describe [-da] ec2_id";;
+	esac
+done
+
+EC2_ID=${@:${#@}}
+
+if [ "$AMI" = "yes" ]; then
+	ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split($0, a, " "); print a[3] }'
+elif [ "$DNS_NAME" = "yes" ]; then	
+	ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split($0, a, " "); print a[4] }'
+elif [ "$SIZE" = "yes" ]; then
+	ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split($0, a, " "); print a[7] }'
+else
+	ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split($0, a, " "); print a[1], a[2], a[3], a[4], a[7], a[9] }'
+fi

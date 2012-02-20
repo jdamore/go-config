@@ -1,30 +1,92 @@
 #!/bin/bash
 
-function execute_feature() {
-	feature=$1
-	echo "----------------------------------------------------"
-	echo "Running $feature"
-	echo "----------------------------------------------------"
-	cat $feature | while read line; do
-		echo $line
-		keyword=`echo $line | awk '{ split( $0, a, " "); print a[1] }'`
-		if [ "$keyword" = "Given" -o "$keyword" = "When" -o "$keyword" = "Then" -o "$keyword" = "Finally" -o "$keyword" = "And" ]; then
-			eval `echo $line | awk '{ split( $0, a, " "); print a[2], a[3] }'`
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $curr_dir/../bin/ec2.config
+
+set -e
+
+function is_comment() {
+	local line=$1
+	[[ $line == \#* ]] && return 0 || return 1
+}
+
+function trim() {
+	echo $1
+}
+
+function is_empty() {	
+	local trimed_line=`echo $1`
+	[ ${#trimed_line} -eq 0 ] && return 0 || return 1
+}
+
+function is_new_scenario() {
+	local line=$1
+	local keyword=`echo $line | awk '{ split($0, a, " "); print a[1] }'`
+	[ "$keyword" = "Scenario:" ] && return 0 || return 1
+}
+
+function run_scenario() {
+	local scenario_failed=no
+	local scenario_file=$1
+	local scenario_name$2
+	cat $scenario_file | while read line; do		
+		if [ "$scenario_failed" = "yes" ]; then
+			echo "$line (SKIPPED)"
+		else
+			echo $line
+			local keyword=`echo $line | awk '{ split($0, a, " "); print a[1] }'`
+			if [ "$keyword" = "Given" -o "$keyword" = "When" -o "$keyword" = "Then" -o "$keyword" = "Finally" -o "$keyword" = "And" ]; then
+				eval "`echo $line | awk '{ split($0, a, " "); print a[2], a[3], a[4], a[5], a[6] }'`" > $curr_dir/run.out
+				local step_failed=`cat $curr_dir/run.out | grep FAILED`
+				if [ ! "$step_failed" = "" ];then
+					cat $curr_dir/run.out
+					scenario_failed=yes
+				fi
+			fi
 		fi
+		if [ -e $curr_dir/run.out ];then
+			rm $curr_dir/run.out
+		fi		
 	done
 }
 
-curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. $curr_dir/../bin/ec2.config
+function run_feature() {
+	feature=$1
+	echo ""
+	echo "****************************************************"
+	echo "Running $feature"
+	echo "****************************************************"
+	local scenario_name=''
+	cat $feature | while read line; do	
+		if ( is_new_scenario $line ); then
+			if [ -e $curr_dir/scenario.out ]; then
+				run_scenario $curr_dir/scenario.out $scenario_name
+				rm $curr_dir/scenario.out
+			fi
+			scenario_name=`echo $line | awk '{ split( $0, a, ":"); print a[2] }'`
+			echo ""
+			echo "---------"
+			echo $line
+		elif ( is_comment $line || is_empty $line ); then
+			continue
+		elif [ "$scenario_name" = "" ]; then
+			echo $line
+		else
+			echo $line >> $curr_dir/scenario.out
+		fi
+	done
+	run_scenario $curr_dir/scenario.out $scenario_name
+	rm $curr_dir/scenario.out
+}
 
 for steps in $curr_dir/steps/*.steps; do
 	source $steps
 done
 
 if [ $# -eq 1 ]; then
-	execute_feature $curr_dir/features/$1.feature
+	run_feature $curr_dir/features/$1.feature
 else	
 	for feature in $curr_dir/features/*.feature; do
-		execute_feature $feature
+		run_feature $feature
 	done
 fi

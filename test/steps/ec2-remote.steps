@@ -1,6 +1,0 @@
-#!/bin/bash
-
-function i_run_on_the_ec2() {
-	echo "blabla"
-	
-}

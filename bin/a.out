@@ -1,0 +1,3 @@
+RESERVATION	r-ff167f9f	776465736256	default
+INSTANCE	i-fae3d79f	ami-06ad526f	ec2-50-17-69-138.compute-1.amazonaws.com	ip-10-243-118-173.ec2.internal	running	jrbigmac	0		t1.micro	2012-02-20T03:02:17+0000	us-east-1d	aki-407d9529			monitoring-disabled	50.17.69.138	10.243.118.173			ebs					paravirtual	xen		sg-da9965b2	default
+BLOCKDEVICE	/dev/sda1	vol-1f2b9773	2012-02-20T03:02:40.000Z	

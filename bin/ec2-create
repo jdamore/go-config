@@ -10,12 +10,12 @@ SEC_GROUP=default
 
 while getopts :a:k:s:g opt; do
 	case $opt in
-		a) AMI=$OPTARG; echo $AMI;;
-		k) KEYPAIR=$OPTARG; echo $KEYPAIR;;
-		s) SIZE=$OPTARG; echo $SIZE;;
-		g) SEC_GROUP=$OPTARG; echo $SEC_GROUP;;
-		\?) echo "Invalid option: -$opt"; echo "Usage create-ec2 [-aksg]";;
+		a) AMI=$OPTARG;;
+		k) KEYPAIR=$OPTARG;;
+		s) EC2_SIZE=$OPTARG;;
+		g) SEC_GROUP=$OPTARG;;
+		\?) echo "Invalid option: -$opt"; echo "Usage ec2-create [-aksg]";;
 	esac
 done
 
-ec2-run-instances $AMI -k $KEYPAIR -t $EC2_SIZE -g $SEC_GROUP | grep INSTANCE | awk '{ split( $0, a, " "); print a[2] }'
+ec2-run-instances $AMI -k $KEYPAIR --instance-type $EC2_SIZE -g $SEC_GROUP | grep INSTANCE | awk '{ split( $0, a, " "); print a[2] }'
