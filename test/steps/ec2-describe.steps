@@ -2,14 +2,26 @@
 
 ec2_desc=''
 function i_describe_the_ec2_instance() {
-	curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-	ec2_desc=`$curr_dir/../../bin/ec2-describe $ec2_id`
+	local curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+	if [ $# -eq 1 ]; then
+		ec2_desc=`ec2-describe $1 $ec2_id`
+	else
+		ec2_desc=`ec2-describe $ec2_id`
+	fi
+}
+
+ec2_dns=''
+function i_should_see_its_details() {
+	ec2_instance=`echo $ec2_desc | awk '{ split( $0, a, " "); print a[1] }'`
+	if [ ! "$ec2_instance" = "INSTANCE" ]; then
+		echo "Assert failed, can't see the EC2 details ($ec2_desc)"
+	fi
 }
 
 ec2_dns=''
 function i_should_see_its_dns_name() {
 	ec2_dns=`echo $ec2_desc | awk '{ split( $0, a, " "); print a[4] }'`
-	ec2_dns_found=`echo $ec2_dns | grep "compute-1.amazonaws.com"`
+	local ec2_dns_found=`echo $ec2_dns | grep "compute-1.amazonaws.com"`
 	if [ "$ec2_dns_found" = "" ]; then
 		echo "Assert failed, ec2_dns is empty ($ec2_dns)"
 	fi

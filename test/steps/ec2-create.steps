@@ -7,8 +7,8 @@ function i_have_an_aws_account() {
 
 ec2_id=''
 function i_create_an_ec2() {	
-	curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-	ec2_id=`$curr_dir/../../bin/ec2-create`
+	local curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+	ec2_id=`ec2-create`
 }
 
 function i_should_have_and_ec2_vm_on_aws {	
@@ -18,5 +18,5 @@ function i_should_have_and_ec2_vm_on_aws {
 }
 
 function i_delete_the_ec2 {
-	$curr_dir/../../bin/ec2-kill $ec2_id
+	ec2-kill $ec2_id
 }
