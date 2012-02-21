@@ -1,11 +1,12 @@
 #!/bin/bash
 
+num_step_passed=0
+num_step_failed=0
+num_step_skipped=0
+num_step_pending=0
+
 function is_comment() {
 	[[ $1 == \#* ]] && return 0 || return 1
-}
-
-function trim() {
-	echo $1
 }
 
 function is_empty() {	
@@ -23,69 +24,83 @@ function run_step() {
 	$step
 }
 
-function run_scenario_steps() {
+function run_scenario() {
+	echo ">> "
+	echo ">> ---------"
 	local rcode=0
 	local scenario_file=$1
-	cat $scenario_file | while read line; do		
+	cat $scenario_file | while read line; do	
 		if [ $rcode -ne 0 ]; then echo "$line (SKIPPED)"
 		else
-			echo $line
 			local keyword=`echo $line | awk '{ split($0, a, " "); print a[1] }'`
 			if [ "$keyword" = "Given" -o "$keyword" = "When" -o "$keyword" = "Then" -o "$keyword" = "Finally" -o "$keyword" = "And" ]; then
 				run_step "$line"
 				local step_rcode=$?
-				# echo "step_rcode=$step_rcode"
-				# echo "rcode_before=$rcode"
-				rcode=$step_rcode||$rcode
-				# echo "rcode_after=$rcode"
 				if [ $step_rcode -ne 0 ]; then
-					echo "$error"
+					if ( ! is_empty "$error" ); then
+						echo ">> $line (FAILED $error)"
+					else
+						echo ">> $line (FAILED)"
+					fi
+				else
+					echo ">> $line"
 				fi
+				rcode=$step_rcode||$rcode
+				echo $rcode > "$curr_dir/scenario.rcode"
+			else
+				echo ">> $line"
 			fi
 		fi		
 	done
+	rcode=`cat "$curr_dir/scenario.rcode"`
+	rm "$curr_dir/scenario.rcode"
+	# if [ $rcode -ne 0 ]; then
+	# 		echo "SCENARIO FAILED"
+	# 	fi
 	return $rcode
 }
 
-function run_scenario() {
-	local scenario_file=$1
-	local scenario_name=$2
-	local rcode=0
-	if [ -e $scenario_file ]; then
-		run_scenario_steps $scenario_file
-		rcode=$?
-		rm $scenario_file
-	fi
-	return $rcode
-}
+
 
 function run_feature() {
 	local rcode=0
 	local feature=$1
-	echo ""
-	echo "****************************************************"
-	echo "Running $feature"
-	echo "****************************************************"
+	echo ">> "
+	echo ">> ****************************************************"
+	echo ">> Running $feature"
+	echo ">> ****************************************************"
 	local scenario_name=''
 	cat $feature | while read line; do	
-		if ( is_new_scenario $line ); then
-			run_scenario "$curr_dir/scenario.out" "$scenario_name"
-			rcode=$?||$rcode
-			scenario_name=`echo $line | awk '{ split( $0, a, ":"); print a[2] }'`
-			echo ""
-			echo "---------"
-			echo $line
-		elif ( is_comment $line || is_empty $line ); then
+		if ( is_comment $line || is_empty $line ); then
 			continue
-		elif [ "$scenario_name" = "" ]; then
-			echo $line
-		else
-			echo $line >> $curr_dir/scenario.out
 		fi
+		if [ -e "$curr_dir/scenario.out" ]; then
+			if ( is_new_scenario $line ); then
+				run_scenario "$curr_dir/scenario.out"
+				rcode=$?||$rcode
+				rm "$curr_dir/scenario.out"
+			fi
+			echo $line >> $curr_dir/scenario.out
+		else
+			if ( is_new_scenario $line ); then
+				echo $line >> $curr_dir/scenario.out
+			else
+				echo ">> $line"
+			fi
+		fi
+		echo $rcode > "$curr_dir/feature.rcode"
 	done
-	run_scenario "$curr_dir/scenario.out" "$scenario_name"
-	return $?||$rcode
+	rcode=`cat "$curr_dir/feature.rcode"`
+	run_scenario "$curr_dir/scenario.out"
+	rcode=$?||$rcode
+	rm "$curr_dir/scenario.out"
+	rm "$curr_dir/feature.rcode"
+	# if [ $rcode -ne 0 ]; then
+	# 		echo "FEATURE FAILED"
+	# 	fi
+	return $rcode
 }
+
 
 rcode=0
 
@@ -107,6 +122,7 @@ else
 fi
 
 if [ $rcode -ne 0 ]; then
-	echo "RUN FAILED"
+	echo ">> RUN FAILED"
 fi
 exit $rcode
+

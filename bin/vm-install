@@ -1,0 +1,28 @@
+#!/bin/bash
+
+SSH_KEY=~/.ssh/id_rsa
+
+while getopts :i opt; do
+	case $opt in
+		i) SSH_KEY=$OPTARG;;
+		\?) echo "Invalid option: -$opt"; echo "Usage vm-install [-i <ssh_key>] <host> <user> <module>"; exit 1;;
+	esac
+done
+
+if [ $# -lt 3 ]; then
+	echo "Usage vm-install [-i <ssh_key>] <host> <user> <module>"
+	exit 1
+fi
+	
+module=${@:$(($#))}
+user=${@:$(($#-1))}
+host=${@:$(($#-2))}
+
+if [ ! -e $curr_dir/../module/$module/install ]; then
+	echo "Uknown module '$module'"
+	exit 2
+else
+	scp -r $curr_dir/../module/$module $user@$host:/home/$user/.	
+	ssh -i $SSH_KEY $user@$host "/home/$user/$module/install"
+fi
+exit 0
