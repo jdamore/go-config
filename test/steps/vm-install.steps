@@ -1,27 +1,22 @@
 #!/bin/bash
 
-error=''
-
 function i_have_a_running_ec2_vm() {
 	i_create_an_ec2
+	ret=$?
 	i_describe_the_ec2_instance_dns_name
-	return 0	
+	ret=$ret||$?
+	return $ret
 }
 
 function i_install_on_the_ec2_the_module() {
 	local curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	local module=$1
-	vm-install "ubuntu" $ec2_dns $module > $curr_dir/temp.out
-	ret=$?
-	if [ $ret -ne 0 ]; then
-		error=`cat $curr_dir/temp.out`
-	fi
-	rm $curr_dir/temp.out
+	vm-install $ec2_dns ubuntu $module
 	return $?
 }
 
 function the_module_should_be_installed_on_the_vm() {
 	local module=$1
-	ret=`vm-check "ubuntu" $ec2_dns $module`
+	vm-check "ubuntu" $ec2_dns $module
 	return $?
 }

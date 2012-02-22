@@ -30,18 +30,14 @@ function run_scenario() {
 	local rcode=0
 	local scenario_file=$1
 	cat $scenario_file | while read line; do	
-		if [ $rcode -ne 0 ]; then echo "$line (SKIPPED)"
+		if [ $rcode -ne 0 ]; then echo ">> $line (SKIPPED)"
 		else
 			local keyword=`echo $line | awk '{ split($0, a, " "); print a[1] }'`
 			if [ "$keyword" = "Given" -o "$keyword" = "When" -o "$keyword" = "Then" -o "$keyword" = "Finally" -o "$keyword" = "And" ]; then
 				run_step "$line"
 				local step_rcode=$?
 				if [ $step_rcode -ne 0 ]; then
-					if ( ! is_empty "$error" ); then
-						echo ">> $line (FAILED $error)"
-					else
-						echo ">> $line (FAILED)"
-					fi
+					echo ">> $line (FAILED)"
 				else
 					echo ">> $line"
 				fi
@@ -59,8 +55,6 @@ function run_scenario() {
 	# 	fi
 	return $rcode
 }
-
-
 
 function run_feature() {
 	local rcode=0
@@ -100,7 +94,6 @@ function run_feature() {
 	# 	fi
 	return $rcode
 }
-
 
 rcode=0
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 SSH_KEY=~/.ssh/id_rsa
 
 while getopts :i opt; do
@@ -13,16 +15,18 @@ if [ $# -lt 3 ]; then
 	echo "Usage vm-install [-i <ssh_key>] <host> <user> <module>"
 	exit 1
 fi
-	
-module=${@:$(($#))}
-user=${@:$(($#-1))}
-host=${@:$(($#-2))}
+
+args=${@:$(($#-2))}
+module=`echo $args | awk '{ split($0, a, " "); print a[3] }'`
+user=`echo $args | awk '{ split($0, a, " "); print a[2] }'`
+host=`echo $args | awk '{ split($0, a, " "); print a[1] }'`
 
 if [ ! -e $curr_dir/../module/$module/install ]; then
-	echo "Uknown module '$module'"
+	echo "Can't find module '$module' install file $curr_dir/../module/$module/install"
 	exit 2
 else
+	echo "Will scp directory $curr_dir/../module/$module to $user@$host:/home/$user"
 	scp -r $curr_dir/../module/$module $user@$host:/home/$user/.	
 	ssh -i $SSH_KEY $user@$host "/home/$user/$module/install"
 fi
-exit 0
+exit $?

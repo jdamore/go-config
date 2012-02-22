@@ -17,12 +17,23 @@ done
 
 EC2_ID=${@:${#@}}
 
-if [ "$AMI" = "yes" ]; then
-	ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split($0, a, " "); print a[3] }'
-elif [ "$DNS_NAME" = "yes" ]; then	
-	ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split($0, a, " "); print a[4] }'
-elif [ "$SIZE" = "yes" ]; then
-	ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split($0, a, " "); print a[7] }'
-else
-	ec2-describe-instances $EC2_ID | grep INSTANCE | awk '{ split($0, a, " "); print a[1], a[2], a[3], a[4], a[7], a[9] }'
+
+ec2-describe-instances $EC2_ID > $curr_dir/ec2-describe.out
+ret=$?
+if [ $ret -ne 0 ]; then
+	cat $curr_dir/ec2-describe.out
+	rm $curr_dir/ec2-describe.out
+	exit $ret
 fi
+
+if [ "$AMI" = "yes" ]; then
+	cat $curr_dir/ec2-describe.out | grep INSTANCE | awk '{ split($0, a, " "); print a[3] }'
+elif [ "$DNS_NAME" = "yes" ]; then	
+	cat $curr_dir/ec2-describe.out | grep INSTANCE | awk '{ split($0, a, " "); print a[4] }'
+elif [ "$SIZE" = "yes" ]; then
+	cat $curr_dir/ec2-describe.out | grep INSTANCE | awk '{ split($0, a, " "); print a[7] }'
+else
+	cat $curr_dir/ec2-describe.out | grep INSTANCE | awk '{ split($0, a, " "); print a[1], a[2], a[3], a[4], a[7], a[9] }'
+fi	
+rm $curr_dir/ec2-describe.out
+exit 0

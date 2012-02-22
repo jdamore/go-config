@@ -10,3 +10,4 @@ else
 		ec2-terminate-instances $ec2_id	
 	done
 fi
+exit $?
