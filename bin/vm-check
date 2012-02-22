@@ -25,7 +25,13 @@ if [ ! -e $curr_dir/../module/$module/check ]; then
 	echo "Can't find module '$module' check file $curr_dir/../module/$module/check"
 	exit 2
 else
-	scp -r $curr_dir/../module/$module $user@$host:/home/$user/.	
+	scp -r $curr_dir/../module/$module $user@$host:/home/$user/.
+	ret=$?
+	if [ $ret -ne 0 ]; then exit $ret; fi
+	wait	
 	ssh -i $SSH_KEY $user@$host "/home/$user/$module/check"
+	ret=$?
+	if [ $ret -ne 0 ]; then exit $ret; fi
+	wait
 fi
-exit $?
+exit 0

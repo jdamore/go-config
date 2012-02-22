@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
-ret=`which git`
-trimed_ret=`echo $ret`
-[ ${#trimed_ret} -eq 0 ] && exit 0 || exit 1
+git_path=`which git`
+ret=$?
+echo $git_path
+exit $ret

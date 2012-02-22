@@ -1,0 +1,2 @@
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+$curr_dir/ec2-describe | grep compute-1 | awk '{ split($0, a, " "); print a[2] }' | while read line; do $curr_dir/ec2-kill $line; done

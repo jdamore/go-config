@@ -26,7 +26,13 @@ if [ ! -e $curr_dir/../module/$module/install ]; then
 	exit 2
 else
 	echo "Will scp directory $curr_dir/../module/$module to $user@$host:/home/$user"
-	scp -r $curr_dir/../module/$module $user@$host:/home/$user/.	
-	ssh -i $SSH_KEY $user@$host "/home/$user/$module/install"
+	scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $curr_dir/../module/$module $user@$host:/home/$user/.
+	ret=$?
+	if [ $ret -ne 0 ]; then exit $ret; fi
+	wait	
+	ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i $SSH_KEY $user@$host "/home/$user/$module/install"
+	ret=$?
+	if [ $ret -ne 0 ]; then exit $ret; fi
+	wait
 fi
-exit $?
+exit 0
