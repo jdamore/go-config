@@ -1,0 +1,27 @@
+#!/bin/bash
+
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $curr_dir/common
+
+function test_when_given_wrong_option_check_ec2_run_instances_not_called() {
+	mock ec2-run-instances	
+	test "ec2-create -z"
+	assert_not_called ec2-run-instances
+	ret=$?
+	echo "($ret) test_when_given_wrong_option_check_ec2_run_instances_not_called"
+	return $ret
+}
+
+function test_when_given_no_args_check_ec2_run_instances_called() {
+	OPTS=""
+	ARGS=""
+	mock ec2-run-instances
+	test ec2-create
+	assert_called ec2-run-instances
+	ret=$?
+	echo "($ret) test_when_given_no_args_check_ec2_run_instances_called"
+	return $ret
+}
+
+test_when_given_no_args_check_ec2_run_instances_called
+test_when_given_wrong_option_check_ec2_run_instances_not_called

@@ -1,30 +1,36 @@
 #!/bin/bash
 
-curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. $curr_dir/ec2.config
-
 AMI=ami-06ad526f
 KEYPAIR=jrbigmac
 EC2_SIZE=t1.micro
 SEC_GROUP=default
 
+function main() {
+	curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+	. $curr_dir/ec2.config
+	ec2-run-instances $AMI -k $KEYPAIR --instance-type $EC2_SIZE -g $SEC_GROUP > $curr_dir/ec2-create.out
+	ret=$?
+	if [ $ret -ne 0 ]; then
+		cat $curr_dir/ec2-create.out
+		rm $curr_dir/ec2-create.out
+		return $ret
+	fi 
+	cat $curr_dir/ec2-create.out | grep INSTANCE | awk '{ split( $0, a, " "); print a[2] }'
+	rm $curr_dir/ec2-create.out
+	return 0
+}
+
+ok=1
 while getopts :a:k:s:g opt; do
 	case $opt in
 		a) AMI=$OPTARG;;
 		k) KEYPAIR=$OPTARG;;
 		s) EC2_SIZE=$OPTARG;;
 		g) SEC_GROUP=$OPTARG;;
-		\?) echo "Invalid option: -$opt"; echo "Usage ec2-create [-aksg]"; exit 1;;
+		\?) echo "Invalid option: -$opt"; echo "Usage ec2-create [-aksg]"; ok=0;;
 	esac
 done
 
-ec2-run-instances $AMI -k $KEYPAIR --instance-type $EC2_SIZE -g $SEC_GROUP > $curr_dir/ec2-create.out
-ret=$?
-if [ $ret -ne 0 ]; then
-	cat $curr_dir/ec2-create.out
-	rm $curr_dir/ec2-create.out
-	exit $ret
-fi 
-cat $curr_dir/ec2-create.out | grep INSTANCE | awk '{ split( $0, a, " "); print a[2] }'
-rm $curr_dir/ec2-create.out 
-exit 0
+if [ "$ok" = "1" ]; then
+	main
+fi

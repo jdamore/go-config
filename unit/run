@@ -1,0 +1,7 @@
+#!/bin/bash
+
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export PATH=$PATH:$curr_dir/../bin
+
+$curr_dir/test/ec2-create.test
+

@@ -1,0 +1,80 @@
+#!/bin/bash
+
+output=$curr_dir/test.out
+
+function mock() {
+	mock=$1
+	opts=$2
+	args=$3
+	curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+	if [ ! -e $curr_dir/mocks.sh ]; then
+		echo "#!/bin/bash" > $curr_dir/mocks.sh
+		chmod 775 $curr_dir/mocks.sh
+	fi
+	echo "" >> $curr_dir/mocks.sh
+	echo "function $mock() {" >> $curr_dir/mocks.sh
+	echo "    echo \"$mock\"" >> $curr_dir/mocks.sh
+	echo "}" >> $curr_dir/mocks.sh
+	source $curr_dir/mocks.sh
+	rm $curr_dir/mocks.sh
+}
+
+function assert_called() {
+	mock=$1
+	opts=$2
+	args=$3
+	if [ ! -e $output ]; then 
+		echo "assert_called failed: output file $output does not exist"
+		return 2
+	fi
+	call=`cat $output | grep $mock`
+	if [ "$call" = "" ]; then		
+		echo "assert_called failed: expected $mock to be called"
+		rm $output
+		return 1
+	fi
+	rm $output
+	return 0
+}
+
+function assert_not_called() {
+	mock=$1
+	opts=$2
+	args=$3
+	if [ ! -e $output ]; then 
+		return 0
+	fi
+	call=`cat $output | grep $mock`
+	if [ ! "$call" = "" ]; then	
+		echo "assert_not_called failed: expected $mock not to be called"
+		rm $output
+		return 1
+	fi		
+	rm $output
+	return 0
+}
+
+function test() {
+	test=$1
+	exec 6>&1 
+	exec &> $output
+	set -x
+	. $test
+	ret=$?
+	set +x
+	exec 1>&6 6>&-
+	return $ret
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
