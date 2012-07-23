@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 AMI=ami-06ad526f
 KEYPAIR=jrbigmac
 EC2_SIZE=t1.micro
