@@ -1,0 +1,13 @@
+#!/bin/bash
+
+curr_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $curr_dir/ec2.config
+
+if [ $# -lt 1 ]; then
+	echo "Usage ec2-stop <instance_ids>"
+else
+	for ec2_id in $*; do
+		ec2-stop-instances $ec2_id	
+	done
+fi
+exit $?
